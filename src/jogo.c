@@ -166,6 +166,28 @@ static void tick_hud(int segundos_restantes, void *dados) {
     refresh();
 }
 
+/* ── Avaliação de tentativa (pura: sem I/O, testável) ───────────────────── */
+
+ResultadoTentativa avaliar_tentativa(Fase       *fase,
+                                     const char *tentativa,
+                                     int         usar_dicionario) {
+    /* 1. Verifica contra as respostas pendentes da fase */
+    for (int j = 0; j < fase->total; j++) {
+        if (fase->acertos[j] == 0 &&
+            strcmp(tentativa, fase->respostas[j]) == 0) {
+            fase->acertos[j] = 1;
+            return TENT_ACERTO;
+        }
+    }
+
+    /* 2. Filtra pelo dicionário (só se não acertou) */
+    if (usar_dicionario && !dict_existe(tentativa))
+        return TENT_DICT;
+
+    /* 3. Palavra real (ou dicionário desligado) mas errada */
+    return TENT_ERRADA;
+}
+
 /* ── Loop principal da partida ──────────────────────────────────────────── */
 
 void jogo_jogar(EstadoJogo *estado,
@@ -299,21 +321,13 @@ void jogo_jogar(EstadoJogo *estado,
                 return;
             }
 
-            /* ── Verifica contra as respostas da fase ─────────────────── */
-            int acertou = 0;
-            for (int j = 0; j < fase->total; j++) {
-                if (fase->acertos[j] == 0 &&
-                    strcmp(tentativa, fase->respostas[j]) == 0) {
-                    fase->acertos[j] = 1;
-                    restantes--;
-                    acertou = 1;
-                    break;
-                }
-            }
+            /* ── Avalia tentativa (resposta → dicionário → erro) ─────── */
+            ResultadoTentativa res_tent =
+                avaliar_tentativa(fase, tentativa, estado->usar_dicionario);
 
-            /* ── Validação de dicionário (só para tentativas erradas) ─── */
-            if (!acertou && estado->usar_dicionario &&
-                !dict_existe(tentativa)) {
+            if (res_tent == TENT_ACERTO) restantes--;
+
+            if (res_tent == TENT_DICT) {
                 printw("\n");
                 attron(COLOR_PAIR(PAR_AMARELO) | A_BOLD);
                 ui_centralizado(largura, "\"");
@@ -325,7 +339,7 @@ void jogo_jogar(EstadoJogo *estado,
                 continue; /* sem penalidade */
             }
 
-            if (acertou) {
+            if (res_tent == TENT_ACERTO) {
                 estado->pontos += PTS_ACERTO;
 
                 /* Bônus por velocidade (modo desafio) */

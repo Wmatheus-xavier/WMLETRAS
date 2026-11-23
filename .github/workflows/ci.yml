@@ -38,6 +38,6 @@ jobs:
         if: runner.os == 'Linux'
         run: make asan
 
-      - name: Smoke test — binary exists and shows help
+      - name: Smoke test — binary exists and is executable
         run: |
           test -x ./wmletras && echo "Binary OK: wmletras exists and is executable"

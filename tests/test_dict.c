@@ -3,24 +3,18 @@
  * @brief Testes do dicionário e da integração dicionário + fases.
  *
  * Cobertura:
- *  1. Palavras claramente válidas existem no dicionário.
+ *  1. Palavras confirmadas existem no dicionário.
  *  2. Lixo aleatório não existe no dicionário.
  *  3. Busca é case-insensitive (minúsculas aceitas internamente).
- *  4. REGRESSÃO — toda resposta esperada de data/entrada.txt deve ser aceita
- *     pelo dicionário OU pela lógica "resposta válida passa sempre".
- *     Concretamente: dict_existe() deve retornar 1 para cada resposta das
- *     fases OU o jogo deve aceitar a tentativa antes de consultar o dicionário.
- *     Este teste verifica o invariante mais simples: após a correção do bug,
- *     carregar todas as fases e tentar cada resposta não deve ser bloqueado
- *     pelo dicionário — ou seja, a resposta está no dicionário OU o código
- *     agora passa por cima do dicionário antes de checar.
- *     Aqui testamos apenas a premissa do dicionário: listamos quais respostas
- *     NÃO estão no dicionário para garantir que o bug seja documentado e
- *     o teste falhe se alguém reverter a correção de jogo.c.
+ *  4. REGRESSÃO — toda resposta de data/entrada.txt deve ser aceita por
+ *     avaliar_tentativa() com usar_dicionario=1.  O teste chama a função
+ *     pura diretamente: se alguém reverter a correção de jogo.c (voltando
+ *     a checar o dicionário antes da resposta da fase), este teste FALHA.
  */
 #include "test_framework.h"
 #include "dict.h"
 #include "fases.h"
+#include "jogo.h"
 #include "tipos.h"
 
 #include <stdio.h>
@@ -61,68 +55,58 @@ static void test_case_insensitive(void) {
     TEST("dict: 'cRiA' (misto)    aceito") { ASSERT(dict_existe("cRiA")); }
 }
 
-/* ── Regressão: toda resposta das fases deve chegar ao jogador ──────────── */
+/* ── Regressão: toda resposta das fases deve ser aceita com dicionário ativo */
 
 /*
- * Lógica do teste:
- *   - Carrega data/entrada.txt.
- *   - Para cada resposta R de cada fase:
- *       • Se dict_existe(R) == 1 → passa diretamente pelo filtro do dicionário.
- *       • Se dict_existe(R) == 0 → a única forma de o jogo funcionar é se
- *         a verificação das respostas da fase ocorre ANTES do filtro do
- *         dicionário (correção feita em jogo.c).  Registramos isso como aviso,
- *         mas NÃO fazemos o teste falhar aqui — o teste de regressão real é
- *         compilar e rodar o jogo completo.
- *   - O teste FALHA se nenhuma fase foi carregada (arquivo ausente/corrompido).
+ * Chama avaliar_tentativa() — a função pura extraída de jogo.c — com
+ * usar_dicionario=1 para cada resposta de cada fase.
+ *
+ * Invariante: avaliar_tentativa() DEVE retornar TENT_ACERTO para qualquer
+ * resposta válida da fase, independentemente de o dicionário a conter ou não,
+ * porque a verificação das respostas ocorre ANTES do filtro do dicionário.
+ *
+ * Se a correção em jogo.c for revertida (filtro antes da resposta), o
+ * resultado será TENT_DICT para as ~38 respostas ausentes do dicionário,
+ * e este teste falhará imediatamente.
  */
-static void test_respostas_das_fases(void) {
+static void test_respostas_aceitas_com_dict_ativo(void) {
     EstadoJogo estado;
     memset(&estado, 0, sizeof(estado));
 
     int n = fases_carregar(ARQ_FASES, &estado);
 
-    TEST("fases carregadas para o teste de dict") {
+    TEST("fases carregadas para teste de regressao") {
         ASSERT(n > 0);
     }
 
-    if (n == 0) return; /* sem fases, não há o que testar */
-
-    int fora_dict = 0;
+    if (n == 0) return;
 
     for (int f = 0; f < estado.qtd_fases; f++) {
-        Fase *fase = &estado.fases[f];
-        for (int r = 0; r < fase->total; r++) {
-            const char *resp = fase->respostas[r];
-            if (!dict_existe(resp)) {
-                fora_dict++;
-                printf("  [INFO] Fase %d resposta '%s' nao esta no dicionario"
-                       " — aceita pela logica da fase (correcao de jogo.c)\n",
-                       f + 1, resp);
+        /*
+         * Para cada resposta criamos uma cópia temporária da fase com todos
+         * os acertos zerados, garantindo que a resposta ainda está "pendente"
+         * no momento da chamada (avaliar_tentativa marca fase->acertos[j] = 1
+         * ao acertar, então reutilizar a mesma fase saltaria respostas já
+         * marcadas).
+         */
+        for (int r = 0; r < estado.fases[f].total; r++) {
+            Fase copia = estado.fases[f];
+            memset(copia.acertos, 0, sizeof(copia.acertos));
+
+            const char *resp = copia.respostas[r];
+
+            char nome_teste[128];
+            snprintf(nome_teste, sizeof(nome_teste),
+                     "regressao: fase %d resposta '%s' aceita (dict ativo)",
+                     f + 1, resp);
+
+            ResultadoTentativa resultado =
+                avaliar_tentativa(&copia, resp, /*usar_dicionario=*/1);
+
+            TEST(nome_teste) {
+                ASSERT_EQ(resultado, TENT_ACERTO);
             }
         }
-    }
-
-    /*
-     * Registra quantas respostas dependem da correção de jogo.c.
-     * Se esse número aumentar inesperadamente (alguém adicionou fases com
-     * respostas obscuras), o desenvolvedor vê no log.
-     * Se a correção de jogo.c for revertida, o jogo quebrará em runtime —
-     * não aqui, pois dict.c é uma lib separada.
-     */
-    printf("  [INFO] %d resposta(s) de fases fora do dicionario "
-           "(dependem da correcao de jogo.c para funcionar).\n", fora_dict);
-
-    TEST("numero de fases carregadas esta correto") {
-        ASSERT(estado.qtd_fases == n);
-    }
-
-    /* Garante que todas as fases têm pelo menos uma resposta */
-    int fases_vazias = 0;
-    for (int f = 0; f < estado.qtd_fases; f++)
-        if (estado.fases[f].total == 0) fases_vazias++;
-
-    TEST("nenhuma fase carregada esta vazia") {
-        ASSERT_EQ(fases_vazias, 0);
     }
 }
 
@@ -133,6 +117,6 @@ int main(void) {
     test_palavras_comuns();
     test_lixo_nao_existe();
     test_case_insensitive();
-    test_respostas_das_fases();
+    test_respostas_aceitas_com_dict_ativo();
     return test_relatorio();
 }

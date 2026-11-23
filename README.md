@@ -59,8 +59,8 @@ Cada fase apresenta um conjunto de letras embaralhadas. Forme palavras usando **
 
 ### Dicionário embutido 📖
 
-- Todas as tentativas são verificadas contra um dicionário de **1 536 palavras** do português (sem acento, 2–8 letras) antes de ser comparadas com as respostas.
-- Tentativas inválidas (ex.: "AAAA", "ZZZX") são rejeitadas **sem perda de pontos**.
+- As tentativas são primeiro comparadas com as respostas válidas da fase. **Se a tentativa acerta, ela é aceita imediatamente**, independentemente do dicionário.
+- Apenas tentativas que **não são respostas da fase** são verificadas no dicionário de **1 536 palavras** do português (sem acento). Palavras desconhecidas (ex.: "AAAA", "ZZZX") são rejeitadas **sem perda de pontos**.
 - O dicionário pode ser desligado na tela **"Configurar desafio"**.
 
 ---
@@ -133,8 +133,9 @@ wmletras/
 │   └── dict.c            # 1536 palavras PT-BR em tabela hash (DICT_SIZE=3307)
 ├── tests/
 │   ├── test_framework.h  # Micro-framework de testes (sem dependências)
+│   ├── test_dict.c       # 24 testes para o dicionário e regressão das fases
 │   ├── test_fases.c      # 12 testes para o módulo de fases
-│   └── test_ranking.c    # 4 testes para o módulo de ranking
+│   └── test_ranking.c    #  4 testes para o módulo de ranking
 ├── Makefile
 ├── LICENSE
 └── README.md

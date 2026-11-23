@@ -104,7 +104,7 @@ static const char *palavras[] = {
     "TAPO","TARA","TARO","TATA","TATO","TAXA","TECA","TECO","TEIA",
     "TELA","TELE","TELO","TEMO","TENA","TENO","TESA","TESO","TETA",
     "TETO","TIPO","TIRA","TIRE","TIRO","TITA","TITO","TOCA","TOCO",
-    "TODA","TODO","TOLA","TOLE","TOLO","TOMA","TOME","TOMO","TONA",
+    "TODA","TODO","TOLE","TOLO","TOMA","TOME","TOMO","TONA",
     "TONE","TONO","TOPA","TOPE","TOPO","TORE","TORO","TOSA","TOSE",
     "TOSO","TOTA","TOTO","TUBA","TUDO","TULE","TUMO","TUNA","TUPO",
     "TURF",
