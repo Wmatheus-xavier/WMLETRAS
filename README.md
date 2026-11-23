@@ -32,19 +32,36 @@ Cada fase apresenta um conjunto de letras embaralhadas. Forme palavras usando **
 
 ### Controles
 
-| Tecla | Ação                    |
-|-------|-------------------------|
-| `W`   | Mover seleção para cima |
-| `S`   | Mover seleção para baixo|
-| `F`   | Confirmar / Entrar      |
+| Tecla / Tecla Especial | Ação                      |
+|------------------------|---------------------------|
+| `↑` / `W`              | Mover seleção para cima   |
+| `↓` / `S`              | Mover seleção para baixo  |
+| `Enter` / `F`          | Confirmar / Entrar        |
+
+> **Entrada sem ENTER:** graças ao ncurses, todas as teclas dos menus são capturadas imediatamente, sem precisar pressionar ENTER.
 
 ### Pontuação
 
-| Evento             | Pontos         |
-|--------------------|----------------|
-| Palavra correta    | +100           |
-| Palavra errada     | -10 (mín. 0)   |
-| Passar de fase     | +25            |
+| Evento                              | Pontos            |
+|-------------------------------------|-------------------|
+| Palavra correta                     | +100              |
+| Palavra errada                      | −10 (mín. 0)      |
+| Passar de fase                      | +25               |
+| **Acerto rápido (modo desafio)**    | **+0 a +50 bônus** |
+
+### Modo Desafio 🕐
+
+- Cada fase tem um **cronômetro regressivo** configurável (30 / 45 / 60 / 90 s).
+- O HUD mostra o tempo restante **ao vivo**, colorindo verde → amarelo → vermelho.
+- Acertos rápidos ganham bônus proporcional ao tempo restante (máx. +50 pts).
+- Tempo esgotado: a fase encerra automaticamente sem bônus de conclusão.
+- Configure em **"Configurar desafio"** no menu principal.
+
+### Dicionário embutido 📖
+
+- Todas as tentativas são verificadas contra um dicionário de **1 536 palavras** do português (sem acento, 2–8 letras) antes de ser comparadas com as respostas.
+- Tentativas inválidas (ex.: "AAAA", "ZZZX") são rejeitadas **sem perda de pontos**.
+- O dicionário pode ser desligado na tela **"Configurar desafio"**.
 
 ---
 
@@ -53,7 +70,22 @@ Cada fase apresenta um conjunto de letras embaralhadas. Forme palavras usando **
 ### Pré-requisitos
 - GCC ≥ 9 (ou clang ≥ 11)
 - make
-- Linux, macOS ou Windows com MinGW/MSYS2
+- **libncurses-dev** (ou equivalente)
+- Linux, macOS ou Windows com MinGW/MSYS2 + PDCurses
+
+### Instalar ncurses (Debian/Ubuntu)
+
+```bash
+sudo apt-get install libncurses-dev
+```
+
+Caso não tenha sudo, o Makefile detecta automaticamente a ausência do header
+e usa a cópia local em `deps/` (criada pelo script abaixo):
+
+```bash
+apt-get download libncurses-dev
+dpkg-deb -x libncurses-dev_*.deb deps/
+```
 
 ### Compilar e executar
 
@@ -86,17 +118,19 @@ wmletras/
 ├── data/
 │   └── entrada.txt       # Fases do jogo (editável)
 ├── include/
-│   ├── tipos.h           # Structs, constantes e cores ANSI compartilhadas
-│   ├── ui.h              # Interface de usuário (menus, tela, entrada)
+│   ├── tipos.h           # Structs, constantes compartilhadas
+│   ├── ui.h              # UI ncurses (menus, cronômetro, entrada sem ENTER)
 │   ├── fases.h           # Carregamento e validação de fases
 │   ├── ranking.h         # Leitura/escrita do ranking
-│   └── jogo.h            # Lógica da partida
+│   ├── jogo.h            # Lógica da partida
+│   └── dict.h            # Dicionário embutido de palavras PT-BR
 ├── src/
-│   ├── main.c            # Ponto de entrada e fluxo principal
-│   ├── ui.c              # Implementação da UI
+│   ├── main.c            # Ponto de entrada, modo desafio, fluxo principal
+│   ├── ui.c              # Implementação ncurses da UI
 │   ├── fases.c           # Implementação do carregador de fases
 │   ├── ranking.c         # Implementação do ranking
-│   └── jogo.c            # Implementação da partida
+│   ├── jogo.c            # Lógica da partida + cronômetro + dicionário
+│   └── dict.c            # 1536 palavras PT-BR em tabela hash (DICT_SIZE=3307)
 ├── tests/
 │   ├── test_framework.h  # Micro-framework de testes (sem dependências)
 │   ├── test_fases.c      # 12 testes para o módulo de fases
@@ -156,8 +190,10 @@ Há um código secreto escondido na tela de **Configurações**. Os pontos bônu
 | Arquivos separados por módulo | Facilita leitura, teste e manutenção independente |
 | `EstadoJogo` passado por ponteiro | Elimina variáveis globais; estado localizável e testável |
 | Formato de ranking campo a campo | Evita dependência de padding/endianness do compilador |
-| `ui_menu()` genérico | Um único lugar para mudar o estilo do cursor `->` |
-| ANSI `\033[2J\033[H` em vez de `system("clear")` | Mais portátil e seguro (sem risco de shell injection) |
+| `ui_menu()` genérico com ncurses | Entrada em tempo real sem ENTER; setas funcionam |
+| Cronômetro via `time()` + `timeout(100)` ncurses | Sem threads; callback de tick a cada segundo no getch loop |
+| Dicionário como tabela hash estática | Zero alocação dinâmica; `dict_existe()` em O(1) médio |
+| `ui_ler_linha_timeout()` com callback | Separa I/O de lógica; cronômetro atualizável sem redesenho total |
 | `fscanf` + validação `resposta_valida()` | Detecta erros no `entrada.txt` em tempo de carga |
 | Testes sem framework externo | Sem dependências; `make test` funciona em qualquer máquina com gcc |
 
@@ -171,8 +207,22 @@ Há um código secreto escondido na tela de **Configurações**. Os pontos bônu
 
 ---
 
-## Ideias de evolução futura
+## Implementado ✅
 
-1. **Modo desafio com tempo** — cada fase tem um cronômetro regressivo; acertos rápidos dão bônus extra.
-2. **Dicionário embutido** — validar que a tentativa é uma palavra real do português antes de comparar com as respostas, eliminando tentativas "AAAA".
-3. **Interface ncurses** — substituir `printf` por ncurses para posicionamento preciso de cursor, animações e entrada em tempo real (sem precisar apertar ENTER).
+As ideias abaixo estavam listadas como "evolução futura" no commit inicial e
+foram totalmente implementadas no código local (branch `main`):
+
+| # | Ideia original | Onde encontrar |
+|---|----------------|----------------|
+| 1 | **Modo desafio com tempo** — cronômetro regressivo por fase; acertos rápidos dão bônus proporcional ao tempo restante (máx. +50 pts, `BONUS_RAPIDO_MAX`). | [`src/jogo.c`](src/jogo.c) · [`src/main.c`](src/main.c) · [`include/tipos.h`](include/tipos.h) |
+| 2 | **Dicionário embutido** — 1 536 palavras PT-BR em tabela hash; tentativas inválidas rejeitadas sem penalidade; desligável no menu. | [`src/dict.c`](src/dict.c) · [`include/dict.h`](include/dict.h) |
+| 3 | **Interface ncurses** — `printf` substituído por `printw`/`mvprintw`; menus com setas sem ENTER; entrada em tempo real com `getch()`; HUD do cronômetro atualizado ao vivo via `mvprintw`. | [`src/ui.c`](src/ui.c) · [`include/ui.h`](include/ui.h) |
+
+---
+
+## Ideias de evolução futura 🔭
+
+1. **Mais fases** — ampliar `data/entrada.txt` com novas letras e respostas (contribuições bem-vindas!).
+2. **Feedback visual de erro** — chamar `beep()` / `flash()` do ncurses ao errar uma palavra, em vez de apenas texto vermelho.
+3. **Animação de letra revelada** — usar `mvchgat()` para piscar o slot de resposta quando uma palavra é acertada, sem redesenhar toda a tela.
+4. **Suporte a acentos** — migrar de `ncurses` + `char` para `ncursesw` + `wchar_t` para aceitar ã/õ/é/etc. tanto na entrada quanto nas respostas (branch recomendado: `feat/acentos`).
