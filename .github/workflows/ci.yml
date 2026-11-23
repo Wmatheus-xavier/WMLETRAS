@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install GCC (macOS)
+        if: runner.os == 'macOS'
+        run: brew install gcc
+
+      - name: Build
+        run: make all
+
+      - name: Run tests
+        run: make test
+
+      - name: Build with AddressSanitizer (Linux only)
+        if: runner.os == 'Linux'
+        run: make asan
+
+      - name: Smoke test (compile only — no terminal)
+        run: |
+          echo "Build and tests passed on ${{ matrix.os }}"
