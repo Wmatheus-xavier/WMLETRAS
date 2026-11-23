@@ -1,69 +1,178 @@
-# WMLETRAS - Jogo de Palavras Cruzadas
+# WMLETRAS 🟩
 
-**Autor:** Washington Matheus Almeida Xavier  
-**Disciplina:** Algoritmos e Programação de Computadores (APC)
+> Jogo de anagramas para o terminal, escrito em C11, estilo Matrix/hacker.
 
-## 🎮 Sobre o Projeto
+**Autor:** Washington Matheus Almeida Xavier — matrícula 252024622  
+**Disciplina:** Algoritmos e Programação de Computadores (APC)  
+**Licença:** [MIT](LICENSE)
 
-**WMLETRAS** é um jogo de lógica e vocabulário desenvolvido em linguagem C. O objetivo é formar palavras a partir de um conjunto de letras embaralhadas. O jogo possui um sistema de progressão de níveis, pontuação dinâmica e um ranking persistente que salva o histórico dos melhores jogadores.
+---
 
-O projeto foi desenvolvido com foco na manipulação de arquivos (leitura de fases e escrita de ranking binário), alocação de memória e construção de interfaces interativas via terminal.
+## Como jogar
 
-## 🚀 Funcionalidades
+Cada fase apresenta um conjunto de letras embaralhadas. Forme palavras usando **apenas** essas letras e as encontre todas para avançar.
 
-* **Sistema de Menus Interativo:** Navegação controlada pelo teclado (não requer mouse).
-* **Leitura de Arquivos:** As fases são carregadas externamente via `entrada.txt`, permitindo a criação de novos níveis sem recompilar o código.
-* **Ranking Persistente:** Os recordes são salvos em um arquivo binário (`ranking.bin`), mantendo os dados mesmo após fechar o jogo.
-* **Estilização Visual:** Uso de códigos ANSI para cores e limpeza de tela, proporcionando uma interface estilo "Matrix/Hacker".
-* **Easter Eggs:** Códigos secretos escondidos nas configurações.
+```
++-----------------------------------+
+|  Fase 2/15  |  Palavras: 3/6  |  Pontos: 325  |  Jogador: Theus
+|
+|   LETRAS DISPONIVEIS:
+|
+|   I -- A -- L -- M -- T
+|
+|   [ LATIM      ]
+|   [ ??????     ]
+|   [ ??????     ]
+|   [ MIL        ]
+|   [ ??????     ]
+|   [ ??????     ]
+|
+|   Digite a palavra (ou SAIR para salvar e sair): _
+```
 
-## 🛠️ Como Compilar e Executar
+### Controles
+
+| Tecla | Ação                    |
+|-------|-------------------------|
+| `W`   | Mover seleção para cima |
+| `S`   | Mover seleção para baixo|
+| `F`   | Confirmar / Entrar      |
+
+### Pontuação
+
+| Evento             | Pontos         |
+|--------------------|----------------|
+| Palavra correta    | +100           |
+| Palavra errada     | -10 (mín. 0)   |
+| Passar de fase     | +25            |
+
+---
+
+## Instalação e compilação
 
 ### Pré-requisitos
-* Compilador C (GCC/MinGW).
-* Sistema Operacional Windows (recomendado devido ao uso de bibliotecas de sistema) ou Linux.
+- GCC ≥ 9 (ou clang ≥ 11)
+- make
+- Linux, macOS ou Windows com MinGW/MSYS2
 
-### Passo a Passo
+### Compilar e executar
 
-1.  Compile o código fonte:
-    ```bash
-    gcc 252024622.c.c -o wmletras.exe
-    ```
+```bash
+git clone https://github.com/seu-usuario/wmletras.git
+cd wmletras
+make        # compila
+make run    # compila e executa
+```
 
-2.  **Importante:** Certifique-se de que o arquivo `entrada.txt` esteja na **mesma pasta** do executável (`wmletras.exe`).
+> **Importante:** execute sempre a partir da raiz do projeto (onde está o `Makefile`), pois o jogo procura `data/entrada.txt` como caminho relativo.
 
-3.  Execute o jogo:
-    ```bash
-    ./wmletras.exe
-    ```
+### Outros targets do Makefile
 
-## 🕹️ Como Jogar
+| Comando        | O que faz                                      |
+|----------------|------------------------------------------------|
+| `make all`     | Compila com `-Wall -Wextra -Wpedantic -Werror` |
+| `make run`     | Compila e executa                              |
+| `make debug`   | Compila com `-g -O0` para usar com gdb         |
+| `make asan`    | Compila com AddressSanitizer + UBSanitizer     |
+| `make test`    | Roda os testes unitários em `tests/`           |
+| `make clean`   | Remove binários e artefatos de build           |
 
-### Controles do Menu
-* `W`: Mover para cima.
-* `S`: Mover para baixo.
-* `F`: Confirmar seleção/Entrar.
+---
 
-### Regras do Jogo
-1.  O jogo apresentará um conjunto de letras embaralhadas (ex: `A R O M`).
-2.  Você deve digitar palavras que podem ser formadas com essas letras (ex: `AMOR`, `ROMA`).
-3.  **Pontuação:**
-    * Acerto: +100 pontos.
-    * Erro: -10 pontos.
-    * Passar de Fase: +25 pontos.
-4.  Para salvar e sair durante o jogo, digite `SAIR`.
+## Estrutura do projeto
 
-## 📂 Estrutura dos Arquivos
+```
+wmletras/
+├── data/
+│   └── entrada.txt       # Fases do jogo (editável)
+├── include/
+│   ├── tipos.h           # Structs, constantes e cores ANSI compartilhadas
+│   ├── ui.h              # Interface de usuário (menus, tela, entrada)
+│   ├── fases.h           # Carregamento e validação de fases
+│   ├── ranking.h         # Leitura/escrita do ranking
+│   └── jogo.h            # Lógica da partida
+├── src/
+│   ├── main.c            # Ponto de entrada e fluxo principal
+│   ├── ui.c              # Implementação da UI
+│   ├── fases.c           # Implementação do carregador de fases
+│   ├── ranking.c         # Implementação do ranking
+│   └── jogo.c            # Implementação da partida
+├── tests/
+│   ├── test_framework.h  # Micro-framework de testes (sem dependências)
+│   ├── test_fases.c      # 12 testes para o módulo de fases
+│   └── test_ranking.c    # 4 testes para o módulo de ranking
+├── Makefile
+├── LICENSE
+└── README.md
+```
 
-* `codigo.c`: Código fonte principal do jogo.
-* `entrada.txt`: Arquivo de texto contendo as fases (Letras embaralhadas e respostas).
-* `ranking.bin`: Arquivo binário gerado automaticamente para salvar os recordes.
+---
 
-## ⚙️ Configuração Personalizada
+## Formato do `data/entrada.txt`
 
-Você pode editar o arquivo `entrada.txt` para adicionar suas próprias fases seguindo este padrão:
-```text
-LETRAS_EMBARALHADAS
+```
+# Comentários começam com #
+LETRAS_DA_FASE
 NUMERO_DE_RESPOSTAS
-RESPOSTA1 RESPOSTA2 RESPOSTA3...
+RESPOSTA1
+RESPOSTA2
+...
 -
+```
+
+**Regras:**
+- `LETRAS_DA_FASE`: string sem espaços, maiúsculas ou minúsculas (convertidas automaticamente).
+- `NUMERO_DE_RESPOSTAS`: inteiro de 1 a 20.
+- Cada `RESPOSTA` deve ser formável com as letras da fase — o jogo valida isso na carga e ignora respostas inválidas com aviso no stderr.
+- O separador `-` marca o fim de cada fase.
+- Suporta até 50 fases.
+- Linhas iniciadas com `#` são ignoradas (comentários).
+
+**Exemplo:**
+```
+# Fase fácil — letras de RAAUG
+RAAUG
+5
+RUGA
+GRAU
+RUA
+AGUA
+AGUAR
+-
+```
+
+---
+
+## Easter egg 🥚
+
+Há um código secreto escondido na tela de **Configurações**. Os pontos bônus são acumulados e aplicados na sua próxima partida. Tente descobrir!
+
+---
+
+## Decisões técnicas
+
+| Decisão | Justificativa |
+|---------|---------------|
+| Arquivos separados por módulo | Facilita leitura, teste e manutenção independente |
+| `EstadoJogo` passado por ponteiro | Elimina variáveis globais; estado localizável e testável |
+| Formato de ranking campo a campo | Evita dependência de padding/endianness do compilador |
+| `ui_menu()` genérico | Um único lugar para mudar o estilo do cursor `->` |
+| ANSI `\033[2J\033[H` em vez de `system("clear")` | Mais portátil e seguro (sem risco de shell injection) |
+| `fscanf` + validação `resposta_valida()` | Detecta erros no `entrada.txt` em tempo de carga |
+| Testes sem framework externo | Sem dependências; `make test` funciona em qualquer máquina com gcc |
+
+---
+
+## Referências de aprendizado
+
+- Abertura de arquivos em C: <https://youtu.be/MtYuhRtQPHU>
+- Limpeza de tela via ANSI: <https://stackoverflow.com/q/55672661>
+- Cores no terminal: <https://youtu.be/Hl-7xMl7bn0>
+
+---
+
+## Ideias de evolução futura
+
+1. **Modo desafio com tempo** — cada fase tem um cronômetro regressivo; acertos rápidos dão bônus extra.
+2. **Dicionário embutido** — validar que a tentativa é uma palavra real do português antes de comparar com as respostas, eliminando tentativas "AAAA".
+3. **Interface ncurses** — substituir `printf` por ncurses para posicionamento preciso de cursor, animações e entrada em tempo real (sem precisar apertar ENTER).
