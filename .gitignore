@@ -25,3 +25,7 @@ vgcore.*
 build/
 wmletras_debug
 wmletras_asan
+
+# Dependências locais extraídas (geradas por: apt-get download + dpkg-deb -x)
+deps/
+libncurses-dev_*.deb

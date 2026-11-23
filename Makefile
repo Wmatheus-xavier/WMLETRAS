@@ -4,8 +4,20 @@
 # =============================================================================
 
 CC      := gcc
-CFLAGS  := -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude
-LDFLAGS :=
+
+# Detecta se ncurses.h está no sistema; caso contrário, usa deps/ local
+# (gerado por: apt-get download libncurses-dev && dpkg-deb -x *.deb deps/)
+NCURSES_SYS := $(shell [ -f /usr/include/ncurses.h ] && echo yes || echo no)
+ifeq ($(NCURSES_SYS),yes)
+  NCURSES_INC :=
+  NCURSES_LIB := -lncurses
+else
+  NCURSES_INC := -Ideps/usr/include
+  NCURSES_LIB := -Ldeps/usr/lib/x86_64-linux-gnu -lncurses
+endif
+
+CFLAGS  := -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude $(NCURSES_INC)
+LDFLAGS := $(NCURSES_LIB)
 
 # Flags extras para o target debug (símbolos + sem otimização)
 DBGFLAGS := -g -O0 -DDEBUG
@@ -21,7 +33,8 @@ OBJ_DIR  := build/obj
 LIB_SRCS := $(SRC_DIR)/ui.c \
             $(SRC_DIR)/fases.c \
             $(SRC_DIR)/ranking.c \
-            $(SRC_DIR)/jogo.c
+            $(SRC_DIR)/jogo.c \
+            $(SRC_DIR)/dict.c
 
 MAIN_SRC := $(SRC_DIR)/main.c
 

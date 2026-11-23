@@ -13,6 +13,7 @@
  */
 #include "ranking.h"
 
+#include <ncurses.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -135,33 +136,34 @@ void ranking_exibir(const char *caminho, int largura) {
     ArquivoRanking r;
     int ok = ranking_ler(caminho, &r);
 
-    printf("\033[2J\033[H"); /* limpa tela */
-    printf("%s", COR_VERDE);
+    /* ncurses: clear + cor verde */
+    clear();
+    attron(COLOR_PAIR(1) | A_BOLD); /* PAR_VERDE = 1 */
 
     int marg = (largura - 37) / 2;
     if (marg < 0) marg = 0;
 
-    printf("%*s%s\n", marg, "", "+-----------------------------------+");
-    printf("%*s%s\n", marg, "", "|      RANKING  (TOP 10)            |");
-    printf("%*s%s\n", marg, "", "+-----------------------------------+");
+    printw("%*s%s\n", marg, "", "+-----------------------------------+");
+    printw("%*s%s\n", marg, "", "|      RANKING  (TOP 10)            |");
+    printw("%*s%s\n", marg, "", "+-----------------------------------+");
 
     if (!ok || r.qtd == 0) {
-        printf("%*s%s\n", marg, "", "|  Nenhum registro encontrado.      |");
+        printw("%*s%s\n", marg, "", "|  Nenhum registro encontrado.      |");
     } else {
         int exibir = r.qtd < TOP_EXIBIR ? r.qtd : TOP_EXIBIR;
         for (int i = 0; i < exibir; i++) {
-            /* Trunca nome a 15 chars para garantir que a linha caiba na caixa */
             char linha[48];
             snprintf(linha, sizeof(linha), "| %2d. %-15.15s %8d pts |",
                      i + 1,
                      r.entradas[i].nome,
                      r.entradas[i].pontos);
-            printf("%*s%s\n", marg, "", linha);
+            printw("%*s%s\n", marg, "", linha);
         }
     }
 
-    printf("%*s%s\n", marg, "", "+-----------------------------------+");
-    printf("%s", COR_RESET);
+    printw("%*s%s\n", marg, "", "+-----------------------------------+");
+    attroff(COLOR_PAIR(1) | A_BOLD);
+    refresh();
 }
 
 void ranking_apagar(const char *caminho) {
