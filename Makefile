@@ -68,14 +68,26 @@ asan: $(LIB_SRCS) $(MAIN_SRC)
 # Testes
 # =============================================================================
 
-TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
-TEST_BIN  := build/run_tests
+# Cada arquivo tests/test_*.c tem seu próprio main(); compilamos e rodamos
+# cada um separadamente para isolamento de falhas.
+TEST_SRCS := $(wildcard $(TEST_DIR)/test_*.c)
+TEST_BINS := $(patsubst $(TEST_DIR)/%.c, build/%, $(TEST_SRCS))
 
-test: $(LIB_OBJS) $(TEST_SRCS) | $(OBJ_DIR)
-	$(CC) $(CFLAGS) $(LIB_OBJS) $(TEST_SRCS) -o $(TEST_BIN) $(LDFLAGS)
-	@echo "[ok] Rodando testes..."
-	@./$(TEST_BIN) && echo "[PASS] Todos os testes passaram." \
-	              || (echo "[FAIL] Algum teste falhou." && exit 1)
+build/%: $(TEST_DIR)/%.c $(LIB_OBJS) | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -I$(TEST_DIR) $< $(LIB_OBJS) -o $@ $(LDFLAGS)
+
+test: $(TEST_BINS)
+	@echo ""
+	@FAIL=0; \
+	for t in $(TEST_BINS); do \
+	    echo "--- $$t ---"; \
+	    ./$$t || FAIL=1; \
+	done; \
+	if [ $$FAIL -eq 0 ]; then \
+	    echo "[PASS] Todos os testes passaram."; \
+	else \
+	    echo "[FAIL] Algum teste falhou."; exit 1; \
+	fi
 
 # =============================================================================
 # Limpeza
