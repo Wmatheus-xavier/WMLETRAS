@@ -56,7 +56,8 @@ static void tela_easter_egg(EstadoJogo *estado) {
     printf("%*s%s\n", marg, "", "1010101010101010101010101010101010101");
     printf("%s", COR_RESET);
 
-    estado->pontos += EASTER_EGG_BONUS;
+    /* Acumula na flag de bônus — será aplicado quando jogar() iniciar */
+    estado->bonus_easter_egg += EASTER_EGG_BONUS;
     ui_pausar(estado->largura_tela);
 }
 

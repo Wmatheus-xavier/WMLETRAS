@@ -8,6 +8,28 @@
 #include <string.h>
 #include <ctype.h>
 
+/**
+ * @brief Verifica se @p palavra pode ser formada pelas letras de @p letras.
+ *
+ * Conta a frequência de cada letra em @p letras e verifica se @p palavra
+ * não usa nenhuma letra mais vezes do que ela aparece em @p letras.
+ *
+ * @return 1 se válida, 0 caso contrário.
+ */
+static int resposta_valida(const char *letras, const char *palavra) {
+    int freq[26] = {0};
+    for (int i = 0; letras[i]; i++) {
+        int idx = letras[i] - 'A';
+        if (idx >= 0 && idx < 26) freq[idx]++;
+    }
+    for (int i = 0; palavra[i]; i++) {
+        int idx = palavra[i] - 'A';
+        if (idx < 0 || idx >= 26) return 0; /* char inválido */
+        if (--freq[idx] < 0)      return 0; /* letra insuficiente */
+    }
+    return 1;
+}
+
 int fases_carregar(const char *caminho, EstadoJogo *estado) {
     FILE *arq = fopen(caminho, "r");
     if (!arq) return 0;
@@ -37,14 +59,30 @@ int fases_carregar(const char *caminho, EstadoJogo *estado) {
         estado->fases[i].total = total;
 
         /* Respostas */
+        int validas = 0;
         for (int j = 0; j < total; j++) {
-            if (fscanf(arq, "%49s", estado->fases[i].respostas[j]) != 1) break;
-            /* Converte resposta para maiúsculas */
-            for (int k = 0; estado->fases[i].respostas[j][k]; k++)
-                estado->fases[i].respostas[j][k] =
-                    (char)toupper((unsigned char)estado->fases[i].respostas[j][k]);
-            estado->fases[i].acertos[j] = 0;
+            char resp_tmp[MAX_PALAVRA];
+            if (fscanf(arq, "%49s", resp_tmp) != 1) break;
+
+            /* Converte para maiúsculas */
+            for (int k = 0; resp_tmp[k]; k++)
+                resp_tmp[k] = (char)toupper((unsigned char)resp_tmp[k]);
+
+            /* Valida: a resposta deve ser formável com as letras da fase */
+            if (!resposta_valida(estado->fases[i].letras, resp_tmp)) {
+                fprintf(stderr,
+                    "[AVISO] Fase %d: resposta '%s' nao pode ser formada "
+                    "pelas letras '%s'. Ignorada.\n",
+                    i + 1, resp_tmp, estado->fases[i].letras);
+                continue;
+            }
+
+            strncpy(estado->fases[i].respostas[validas], resp_tmp, MAX_PALAVRA - 1);
+            estado->fases[i].respostas[validas][MAX_PALAVRA - 1] = '\0';
+            estado->fases[i].acertos[validas] = 0;
+            validas++;
         }
+        estado->fases[i].total = validas;
 
         i++;
     }

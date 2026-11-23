@@ -85,9 +85,10 @@ void jogo_jogar(EstadoJogo *estado,
         return;
     }
 
-    /* Inicializa a partida */
+    /* Inicializa a partida — aplica bônus do easter egg (se houver) e zera a flag */
     fases_reiniciar_acertos(estado);
-    estado->pontos = 0;
+    estado->pontos            = estado->bonus_easter_egg;
+    estado->bonus_easter_egg  = 0;
 
     ui_tela_inicio_jogo(largura);
 

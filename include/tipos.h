@@ -37,6 +37,7 @@ typedef struct {
     Fase fases[MAX_FASES];
     int  qtd_fases;
     int  pontos;
+    int  bonus_easter_egg;             /**< Pontos do easter egg, aplicados antes do jogo */
     char nome_jogador[MAX_NOME];
     int  largura_tela;                 /**< Detectada em tempo de execução   */
 } EstadoJogo;
