@@ -90,7 +90,7 @@ dpkg-deb -x libncurses-dev_*.deb deps/
 ### Compilar e executar
 
 ```bash
-git clone https://github.com/seu-usuario/wmletras.git
+git clone https://github.com/Wmatheus-xavier/Sistema-Jogo-C.git
 cd wmletras
 make        # compila
 make run    # compila e executa

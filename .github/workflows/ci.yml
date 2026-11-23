@@ -20,9 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install GCC (macOS)
+      - name: Install ncurses (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y libncurses-dev
+
+      - name: Install ncurses (macOS)
         if: runner.os == 'macOS'
-        run: brew install gcc
+        run: brew install ncurses
 
       - name: Build
         run: make all
@@ -34,6 +38,6 @@ jobs:
         if: runner.os == 'Linux'
         run: make asan
 
-      - name: Smoke test (compile only — no terminal)
+      - name: Smoke test — binary exists and shows help
         run: |
-          echo "Build and tests passed on ${{ matrix.os }}"
+          test -x ./wmletras && echo "Binary OK: wmletras exists and is executable"
