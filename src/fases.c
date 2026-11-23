@@ -38,9 +38,14 @@ int fases_carregar(const char *caminho, EstadoJogo *estado) {
     char token[MAX_PALAVRA];
 
     while (i < MAX_FASES && fscanf(arq, "%49s", token) == 1) {
-        /* Separador de fases — ignora */
-        if (token[0] == '-' && token[1] == '\0')
+        /* Comentário (#) ou separador (-) — ignora */
+        if (token[0] == '#' || (token[0] == '-' && token[1] == '\0')) {
+            /* Descarta o restante da linha para não confundir com números */
+            int ch;
+            while ((ch = fgetc(arq)) != '\n' && ch != EOF)
+                ;
             continue;
+        }
 
         /* Copia letras disponíveis para a fase */
         strncpy(estado->fases[i].letras, token, MAX_LETRAS - 1);

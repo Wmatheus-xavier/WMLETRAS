@@ -1,3 +1,8 @@
+# Formato: LETRAS / NUMERO_RESPOSTAS / RESPOSTAS (uma por linha) / -
+# Regra: cada resposta deve ser formavel pelas letras da fase.
+# Palavras verificadas conforme dicionario Brasileiro.
+
+# ── FASE 1 — Fácil ──────────────────────────────────────────────
 RAAUG
 5
 RUGA
@@ -6,6 +11,8 @@ RUA
 AGUA
 AGUAR
 -
+
+# ── FASE 2 — Fácil ──────────────────────────────────────────────
 IALMT
 6
 LATIM
@@ -15,6 +22,8 @@ MIL
 TIA
 TAL
 -
+
+# ── FASE 3 — Fácil ──────────────────────────────────────────────
 OTARIA
 6
 RATO
@@ -24,6 +33,8 @@ RITA
 ROTA
 ATOR
 -
+
+# ── FASE 4 — Fácil ──────────────────────────────────────────────
 AUPLOD
 6
 LUPA
@@ -32,4 +43,132 @@ LUA
 DUPLO
 DOA
 LUDO
+-
+
+# ── FASE 5 — Médio ──────────────────────────────────────────────
+NOIVSA
+7
+VASO
+SINO
+AVISO
+SAIO
+VIOSA
+NOIVA
+OVAIS
+-
+
+# ── FASE 6 — Médio ──────────────────────────────────────────────
+ECALRV
+6
+CLAVE
+VALE
+VELA
+LACE
+CAVE
+CELA
+-
+
+# ── FASE 7 — Médio ──────────────────────────────────────────────
+PIULAM
+7
+PUMA
+PULAM
+LIMA
+MULA
+PALMA
+PULA
+MALHA
+-
+
+# ── FASE 8 — Médio ──────────────────────────────────────────────
+ESTOPA
+7
+PASTA
+POSTA
+TOPA
+SAPO
+TAPAS
+PATOS
+TAPAS
+-
+
+# ── FASE 9 — Médio ──────────────────────────────────────────────
+CRAVIO
+6
+CAIRO
+COIVA
+RICO
+VIRA
+CRIA
+CARO
+-
+
+# ── FASE 10 — Médio ─────────────────────────────────────────────
+FLAUTA
+6
+FLAT
+FALA
+LUTA
+TUFA
+FALTA
+ATUAL
+-
+
+# ── FASE 11 — Difícil ───────────────────────────────────────────
+TRAMBOS
+7
+BARTOS
+BOSTA
+RATOS
+TRAMO
+BARRO
+MOSTRA
+TORBA
+-
+
+# ── FASE 12 — Difícil ───────────────────────────────────────────
+CENOURA
+7
+CERO
+ROCA
+CURA
+URANO
+COROA
+CRANE
+NAURO
+-
+
+# ── FASE 13 — Difícil ───────────────────────────────────────────
+PINTADO
+7
+PINTO
+TANDO
+PIANO
+TAPINO
+PONTI
+DANTO
+PATIO
+-
+
+# ── FASE 14 — Difícil ───────────────────────────────────────────
+VERMELHO
+6
+MOLHE
+VELHO
+VELMO
+VERMELHO
+OLHEM
+VELHOS
+-
+
+# ── FASE 15 — Desafio ───────────────────────────────────────────
+CAMARADA
+7
+DRAMA
+MARCA
+CAMA
+MARA
+ARCADA
+ARMADA
+CAMARA
 -
