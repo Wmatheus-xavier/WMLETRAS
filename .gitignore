@@ -22,3 +22,6 @@ output/
 # Relatórios de sanitizers / valgrind
 *.log
 vgcore.*
+build/
+wmletras_debug
+wmletras_asan
