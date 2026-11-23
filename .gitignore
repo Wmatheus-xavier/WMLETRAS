@@ -1,0 +1,24 @@
+# Binários compilados
+wmletras
+wmletras.exe
+*.o
+*.out
+
+# Dados gerados em tempo de execução
+ranking.bin
+
+# Diretório de saída legado
+output/
+
+# Arquivos de editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# macOS
+.DS_Store
+
+# Relatórios de sanitizers / valgrind
+*.log
+vgcore.*
